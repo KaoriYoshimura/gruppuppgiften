@@ -34,12 +34,15 @@ app.post('/cat', (req, res) => {
   });
 });
 
-app.get('/cats', (req, res) => {
-  return res.status(200).send({
+function registerGetAnimals(type, app, collection) {
+  app.get(`/${type}s`, (req, res) => res.status(200).send({
     success: true,
-    data: db.cats.all(),
-  });
-});
+    data: collection.all(),
+  }));
+}
+
+registerGetAnimals('cat', app, db.cats);
+registerGetAnimals('dog', app, db.dogs);
 
 app.get('/cat/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
