@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import Database from './lib/db';
 import { cats, dogs, pokemons } from './creature.js'
+// import { Creature } from './creatureClass.js'
 
 // Setup the server
 const PORT = 3000;
@@ -9,10 +10,10 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Test page to see console result
-app.get('/console',(req, res)=>{
-  res.send(pokemons);
-})
+// // Test page to see console result
+// app.get('/console',(req, res)=>{
+//   res.send(pokemons);
+// })
 
 // Setup the database
 const db = new Database();
@@ -20,172 +21,105 @@ db.addCollection('cats', cats);
 db.addCollection('dogs', dogs);
 db.addCollection('pokemons', pokemons);
 
-// Setup the routes
+class Creature {
 
-function postAnimals(type, app) {
-  app.post(`/${type}s`, (req, res) => {
-    if (!req.body.name) {
-      console.log(req.body);
-      return res.status(400).send({
-        success: false,
-        message: 'Name is required for ' + `/${type}s`,
-      });
-    // eslint-disable-next-line no-else-return
-    } else if (`/${type}s` === 'cats') {
-      const newCat = req.body;
-      const newId = db.cats.push(newCat);
-      return res.status(201).send({
-        success: true,
-        message: 'Cat added successfully',
-        id: newId,
+    constructor(type, collection, app) {
+      this.type = type;
+      this.collection = collection;
+      this.app = app;
+    }
+  
+    registerPostCreature() {
+      const path = `/${this.type}`;
+      // console.log('regPost', path);
+      this.app.post(path, (req, res) => {
+          // body is animalobject, name is name property in object of animal
+        if (!req.body.name) {
+          console.log(req.body);
+          return res.status(400).send({
+            success: false,
+            message: `Name is required for ${this.type}`,
+          });
+        }
+        const newCreature = req.body;
+        const newId = this.collection.push(newCreature);
+        return res.status(201).send({
+          success: true,
+          message: `${this.type} added successfully`,
+          id: newId,
+        });
       });
     }
-  });
-}
-
-// Run postAnimals function
-postAnimals('cat', app);
-// postAnimals('dog', app, db.dogs);
-// postAnimals('pokemon', app, db.pokemons);
-
-app.post('/dog', (req, res) => {
-  if (!req.body.name) {
-    console.log(req.body);
-    return res.status(400).send({
-      success: false,
-      message: 'Name is required for dog',
-    });
-  }
-  const newdog = req.body;
-  const newId = db.dogs.push(newdog);
-  return res.status(201).send({
-    success: true,
-    message: 'Dog added successfully',
-    id: newId,
-  });
-});
-
-app.post('/pokemon', (req, res) => {
-  if (!req.body.name) {
-    console.log(req.body);
-    return res.status(400).send({
-      success: false,
-      message: 'Name is required for pokemon',
-    });
-  }
-  const newPokemon = req.body;
-  const newId = db.pokemons.push(newPokemon);
-  return res.status(201).send({
-    success: true,
-    message: 'Pokemon added successfully',
-    id: newId,
-  });
-});
-
-
-// Register data from database (Was app.get('/cats),(req,res)=>)
-// eslint-disable-next-line no-shadow
-function registerGetAnimals(type, app, collection) {
-  app.get(`/${type}s`, (req, res) => res.status(200).send({
-    success: true,
-    data: collection.all(),
-  }));
-}
-
-// Run registerGetAnimals function
-registerGetAnimals('cat', app, db.cats);
-registerGetAnimals('dog', app, db.dogs);
-registerGetAnimals('pokemon', app, db.pokemons);
-
-
-// const animals = [
-//   {type: 'cat', collection: db.cats},
-//   {type: 'dog', collection: db.dogs},
-//   {type: 'pokemon', collection: db.pokemons},
-// ];
-
-// animals.forEach((animal) => {
-//   registerGetAnimals(app, '/' + animal.type + 's', animal.collection);
-// });
-
-function getAnimalById(app, type) {
-  app.get('/`${type}`/:id', (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    const cat = db.cats.find({ id });
-    if (cat) {
-      return res.status(200).send({
+  
+    registerGetAllCreatures() {
+      const path = `/${this.type}s`;
+      console.log('getPost', path);
+  
+      this.app.get(path, (req, res) => res.status(200).send({
         success: true,
-        data: cat,
+        data: db[`${this.type}s`].all(),
+      }));
+    }
+  
+    registerGetCreatureById() {
+      const path = `/${this.type}/:id`;
+  
+      this.app.get(path, (req, res) => {
+        const id = +req.params.id;
+        const result = db[`${this.type}s`].all().find(obj => obj.id === id);
+        if (result) {
+          return res.status(200).send({
+            success: true,
+            data: result,
+          });
+        }
+        return res.status(404).send({
+          success: false,
+          message: `${this.type} could not be found`,
+  
+        });
       });
     }
-    return res.status(404).send({
-      success: false,
-      message: 'Cat not found',
-    });
-  });
-}
-
-getAnimalById(app, 'dog');
-
-app.get('/cat/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const cat = db.cats.find({ id });
-  if (cat) {
-    return res.status(200).send({
-      success: true,
-      data: cat,
-    });
+  
+    registerGetCreatureByStringInput() {
+      const path = `/${this.type}s/:key/:value`;
+  
+      this.app.get(path, (req, res) => {
+        const { key, value } = req.params;
+        const result = db[`${this.type}s`].find({ [key]: value });
+        if (result) {
+          return res.status(200).send({
+            success: true,
+            data: result,
+          });
+        }
+        return res.status(404).send({
+          success: false,
+          message: `${this.type}s not found`,
+        });
+      });
+    }
   }
-  return res.status(404).send({
-    success: false,
-    message: 'Cat not found',
-  });
-});
 
-app.get('/catSearch/:key/:value', (req, res) => {
-  const { key, value } = req.params;
-  const cat = db.cats.find({ [key]: value });
-  if (cat) {
-    return res.status(200).send({
-      success: true,
-      data: cat,
-    });
-  }
-  return res.status(404).send({
-    success: false,
-    message: 'Cat not found',
-  });
-});
 
-app.get('/dogSearch/:key/:value', (req, res) => {
-  const { key, value } = req.params;
-  const dog = db.dogs.find({ [key]: value });
-  if (dog) {
-    return res.status(200).send({
-      success: true,
-      data: dog,
-    });
-  }
-  return res.status(404).send({
-    success: false,
-    message: 'Dog not found',
-  });
-});
+const cat = new Creature('cat', db.cats, app);
+cat.registerPostCreature();
+cat.registerGetAllCreatures();
+cat.registerGetCreatureById();
+cat.registerGetCreatureByStringInput();
 
-app.get('/pokemonSearch/:key/:value', (req, res) => {
-  const { key, value } = req.params;
-  const pokemon = db.pokemons.find({ [key]: value });
-  if (pokemon) {
-    return res.status(200).send({
-      success: true,
-      data: pokemon,
-    });
-  }
-  return res.status(404).send({
-    success: false,
-    message: 'pokemon not found',
-  });
-});
+const dog = new Creature('dog', db.dogs, app);
+dog.registerPostCreature();
+dog.registerGetAllCreatures();
+dog.registerGetCreatureById();
+dog.registerGetCreatureByStringInput();
+
+const pokemon = new Creature('pokemon', db.pokemons, app);
+pokemon.registerPostCreature();
+pokemon.registerGetAllCreatures();
+pokemon.registerGetCreatureById();
+pokemon.registerGetCreatureByStringInput();
+
 
 // Start server
 app.listen(PORT, () => {
