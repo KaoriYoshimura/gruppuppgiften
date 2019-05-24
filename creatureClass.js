@@ -1,7 +1,4 @@
-import Database from './lib/db';
-
- export class Creature {
-
+class Creature {
   constructor(type, collection, app) {
     this.type = type;
     this.collection = collection;
@@ -12,7 +9,7 @@ import Database from './lib/db';
     const path = `/${this.type}`;
     // console.log('regPost', path);
     this.app.post(path, (req, res) => {
-        // body is animalobject, name is name property in object of animal
+      // body is animalobject, name is name property in object of animal
       if (!req.body.name) {
         console.log(req.body);
         return res.status(400).send({
@@ -80,4 +77,4 @@ import Database from './lib/db';
   }
 }
 
-// export default Creature;
+export default Creature;
