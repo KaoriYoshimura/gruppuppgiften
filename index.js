@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import Database from './lib/db';
+import { cats, dogs, pokemons } from './creature';
+ import Creature from './creatureClass';
 
 // Setup the server
 const PORT = 3000;
@@ -8,68 +10,35 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// // Test page to see console result
+// app.get('/console',(req, res)=>{
+//   res.send(pokemons);
+// })
+
 // Setup the database
 const db = new Database();
-db.addCollection('cats', [
-  { name: 'Fluffy', color: 'White', age: 3 },
-  { name: 'Aslan', color: 'Gold', age: 11 },
-  { name: 'Kitty', color: 'Grey', age: 1 },
-]);
+db.addCollection('cats', cats);
+db.addCollection('dogs', dogs);
+db.addCollection('pokemons', pokemons);
 
-// Setup the routes
-app.post('/cat', (req, res) => {
-  if (!req.body.name) {
-    console.log(req.body);
-    return res.status(400).send({
-      success: false,
-      message: 'Name is required for cat',
-    });
-  }
-  const newCat = req.body;
-  const newId = db.cats.push(newCat);
-  return res.status(201).send({
-    success: true,
-    message: 'Cat added successfully',
-    id: newId,
-  });
-});
 
-app.get('/cats', (req, res) => {
-  return res.status(200).send({
-    success: true,
-    data: db.cats.all(),
-  });
-});
+const cat = new Creature('cat', db.cats, app);
+cat.registerPostCreature();
+cat.registerGetAllCreatures();
+cat.registerGetCreatureById();
+cat.registerGetCreatureByStringInput();
 
-app.get('/cat/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const cat = db.cats.find({ id });
-  if (cat) {
-    return res.status(200).send({
-      success: true,
-      data: cat,
-    });
-  }
-  return res.status(404).send({
-    success: false,
-    message: 'Cat not found',
-  });
-});
+const dog = new Creature('dog', db.dogs, app);
+dog.registerPostCreature();
+dog.registerGetAllCreatures();
+dog.registerGetCreatureById();
+dog.registerGetCreatureByStringInput();
 
-app.get('/catSearch/:key/:value', (req, res) => {
-  const { key, value } = req.params;
-  const cat = db.cats.find({ [key]: value });
-  if (cat) {
-    return res.status(200).send({
-      success: true,
-      data: cat,
-    });
-  }
-  return res.status(404).send({
-    success: false,
-    message: 'Cat not found',
-  });
-});
+const pokemon = new Creature('pokemon', db.pokemons, app);
+pokemon.registerPostCreature();
+pokemon.registerGetAllCreatures();
+pokemon.registerGetCreatureById();
+pokemon.registerGetCreatureByStringInput();
 
 
 // Start server
