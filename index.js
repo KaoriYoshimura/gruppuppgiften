@@ -27,19 +27,19 @@ db.addCollection('dogs', dogs);
 db.addCollection('pokemons', pokemons);
 
 
-const cat = new Creature('cat', db.cats, app);
+const cat = new Creature('cat', db.cats, app, db);
 cat.registerPostCreature();
 cat.registerGetAllCreatures();
 cat.registerGetCreatureById();
 cat.registerGetCreatureByStringInput();
 
-const dog = new Creature('dog', db.dogs, app);
+const dog = new Creature('dog', db.dogs, app, db);
 dog.registerPostCreature();
 dog.registerGetAllCreatures();
 dog.registerGetCreatureById();
 dog.registerGetCreatureByStringInput();
 
-const pokemon = new Creature('pokemon', db.pokemons, app);
+const pokemon = new Creature('pokemon', db.pokemons, app, db);
 pokemon.registerPostCreature();
 pokemon.registerGetAllCreatures();
 pokemon.registerGetCreatureById();
