@@ -1,8 +1,9 @@
 class Creature {
-  constructor(type, collection, app) {
+  constructor(type, collection, app, db) {
     this.type = type;
     this.collection = collection;
     this.app = app;
+    this.db = db;
   }
 
   registerPostCreature() {
@@ -33,7 +34,8 @@ class Creature {
 
     this.app.get(path, (req, res) => res.status(200).send({
       success: true,
-      data: db[`${this.type}s`].all(),
+
+      data: this.db[`${this.type}s`].all(),
     }));
   }
 
@@ -42,7 +44,8 @@ class Creature {
 
     this.app.get(path, (req, res) => {
       const id = +req.params.id;
-      const result = db[`${this.type}s`].all().find(obj => obj.id === id);
+
+      const result = this.db[`${this.type}s`].all().find(obj => obj.id === id);
       if (result) {
         return res.status(200).send({
           success: true,
@@ -62,7 +65,7 @@ class Creature {
 
     this.app.get(path, (req, res) => {
       const { key, value } = req.params;
-      const result = db[`${this.type}s`].find({ [key]: value });
+      const result = this.db[`${this.type}s`].find({ [key]: value });
       if (result) {
         return res.status(200).send({
           success: true,
